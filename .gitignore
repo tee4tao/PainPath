@@ -1,0 +1,26 @@
+# Unity generated
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+
+# Visual Studio
+.vs/
+*.csproj
+*.sln
+
+# Meta files for ignored folders
+[Ll]ibrary.meta
+[Tt]emp.meta
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Large binary assets (Taofeek doesn't need these)
+Assets/Samples~
+*.apk
+*.aab
