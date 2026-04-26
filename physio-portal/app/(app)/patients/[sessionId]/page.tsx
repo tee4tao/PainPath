@@ -5,7 +5,7 @@ export default  async function PatientsPage({params}: { params: Promise<{ sessio
     const { sessionId } = await params;
   
   const res = await fetch(
-    `http://localhost:3000/api/sessions/${sessionId}`,
+    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/sessions/${sessionId}`,
     { cache: "no-store" }
   );
 
