@@ -1,33 +1,57 @@
-# Unity
-[Ll]ibrary/
-[Tt]emp/
-[Oo]bj/
-[Bb]uild/
-[Bb]uilds/
-[Ll]ogs/
-[Uu]ser[Ss]ettings/
-UserSettings/
-*.apk
-*.aab
+# ── Unity ─────────────────────────────────────────────────────────────────
+unity/[Ll]ibrary/
+unity/[Tt]emp/
+unity/[Oo]bj/
+unity/[Bb]uild/
+unity/[Bb]uilds/
+unity/[Ll]ogs/
+unity/[Uu]ser[Ss]ettings/
+unity/UserSettings/
+unity/*.apk
+unity/*.aab
 
-# Visual Studio
-.vs/
-.vscode/
-*.csproj
-*.sln
+# Visual Studio (Unity)
+unity/.vs/
+unity/.vscode/
+unity/*.csproj
+unity/*.sln
 
-# Packages lock
-Packages/packages-lock.json
+# Unity packages lock
+unity/Packages/packages-lock.json
 
-# OS
+# Template assets
+unity/Assets/MRTemplateAssets/
+unity/Assets/Samples/
+unity/Assets/TextMesh Pro/
+unity/Assets/XR/
+unity/Assets/XRI/
+unity/Build and run/
+unity/Model/
+
+# ── Next.js / Node ─────────────────────────────────────────────────────────
+physio-portal/node_modules/
+physio-portal/.pnp
+physio-portal/.pnp.*
+physio-portal/.yarn/*
+!physio-portal/.yarn/patches
+!physio-portal/.yarn/plugins
+!physio-portal/.yarn/releases
+!physio-portal/.yarn/versions
+physio-portal/coverage/
+physio-portal/.next/
+physio-portal/out/
+physio-portal/build/
+physio-portal/*.pem
+physio-portal/npm-debug.log*
+physio-portal/yarn-debug.log*
+physio-portal/yarn-error.log*
+physio-portal/.pnpm-debug.log*
+physio-portal/.env*
+physio-portal/.vercel
+physio-portal/*.tsbuildinfo
+physio-portal/next-env.d.ts
+
+# ── General ────────────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
-
-# Template assets Taofeek doesn't need
-Assets/MRTemplateAssets/
-Assets/Samples/
-Assets/TextMesh Pro/
-Assets/XR/
-Assets/XRI/
-Build and run/
-Model/
+*.pem
