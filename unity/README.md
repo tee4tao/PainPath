@@ -1,6 +1,6 @@
 # PainPath — Unity Project
 
-![PainPath in mixed reality on Meta Quest 3]unity/select_left.jpeg)
+![PainPath in mixed reality on Meta Quest 3](unity/select_left.jpeg)
 
 Unity 2022 / Meta Quest 3 mixed-reality client. The patient stands in passthrough, sees a life-sized 3D body model, taps the parts that hurt with their fingers, picks a pain type and intensity, and submits. The app captures every marker as structured JSON.
 
