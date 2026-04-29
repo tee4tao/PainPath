@@ -1,4 +1,4 @@
-# PainPath — Unity Project
+# PainPath (A Unity Project)
 
 ![PainPath in mixed reality on Meta Quest 3](select_left.jpeg)
 
