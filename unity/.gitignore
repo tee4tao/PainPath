@@ -1,0 +1,33 @@
+# Unity
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+UserSettings/
+*.apk
+*.aab
+
+# Visual Studio
+.vs/
+.vscode/
+*.csproj
+*.sln
+
+# Packages lock
+Packages/packages-lock.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Template assets Taofeek doesn't need
+Assets/MRTemplateAssets/
+Assets/Samples/
+Assets/TextMesh Pro/
+Assets/XR/
+Assets/XRI/
+Build and run/
+Model/
