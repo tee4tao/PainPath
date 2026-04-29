@@ -18,7 +18,7 @@ public class PainPainter : MonoBehaviour
         // Fill with transparent blue base
         Color[] pixels = new Color[textureSize * textureSize];
         for (int i = 0; i < pixels.Length; i++)
-            pixels[i] = new Color(0.4f, 0.7f, 1f, 0.3f);
+            pixels[i] = new Color(01f, 1f, 1f, 0f);
         paintTexture.SetPixels(pixels);
         paintTexture.Apply();
 
@@ -28,8 +28,6 @@ public class PainPainter : MonoBehaviour
 
         // Apply to the renderer
         bodyRenderer.material = paintMaterial;
-
-        Debug.Log("PainPainter initialised. Material: " + paintMaterial.name);
     }
 
     public void Paint(Vector2 uv)
@@ -44,8 +42,6 @@ public class PainPainter : MonoBehaviour
         int y = Mathf.Clamp((int)(uv.y * textureSize), 0, textureSize - 1);
         int radius = Mathf.Max(1, (int)(brushSize * textureSize));
 
-        Debug.Log("Painting at UV: " + uv + " pixel: " + x + "," + y);
-
         for (int px = x - radius; px <= x + radius; px++)
         {
             for (int py = y - radius; py <= y + radius; py++)
@@ -59,6 +55,5 @@ public class PainPainter : MonoBehaviour
 
         paintTexture.Apply();
         paintMaterial.SetTexture("_BaseMap", paintTexture);
-        Debug.Log("Paint applied to texture");
     }
 }
