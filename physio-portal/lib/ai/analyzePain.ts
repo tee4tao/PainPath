@@ -114,7 +114,7 @@ const client = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function analyzePain(payload: PainSummary): Promise<AIAnalysis> {
   const model = client.getGenerativeModel({
-    model: "gemini-3.1-flash-lite-preview",          // or "gemini-1.5-pro" for higher quality
+    model: "gemini-2.5-flash",
     systemInstruction: `You are a physiotherapy clinical decision support assistant.
 You receive structured pain assessment data from a patient's AR session and return a JSON analysis.
 You never diagnose — you suggest likely conditions and evidence-based exercises for a qualified physiotherapist to review.
