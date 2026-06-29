@@ -1,15 +1,21 @@
 'use client'
 
+import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTransition } from "react";
 
 
 const Navbar = () => {
   const router = useRouter();
-function handleSignOut() {
-  document.cookie = "isLoggedIn=; path=/; max-age=0"; // clears it
-  router.push("/login");
-}
+
+  const [logoutPending, startLogoutTransition] = useTransition();
+  async function handleSignOut() {
+    startLogoutTransition(async () => {
+      await fetch("/api/auth/logout", { method: "POST" });
+      router.push("/login");
+    });
+  }
 
   
 
@@ -31,9 +37,16 @@ function handleSignOut() {
           <span className="text-[12px] text-[#888780]">Dr. Sarah Okafor · NHS Belfast</span>
           <button
             onClick={handleSignOut}
-            className="text-[11px] text-[#888780] hover:text-[#2C2C2A] border border-black/[0.1] rounded-lg px-3 py-[5px] transition-colors"
+            className="text-[11px] text-[#888780] hover:text-[#2C2C2A] border border-black/10 rounded-lg px-3 py-1.25 transition-colors cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2.5"
           >
-            Sign out
+            {logoutPending ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />{" "}
+                  <span>Signing out...</span>
+                </>
+              ) : (
+                "Sign out"
+              )}
           </button>
         </div>
       </div>
