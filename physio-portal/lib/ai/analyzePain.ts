@@ -1,61 +1,35 @@
-// // lib/ai/analyzePain.ts
+// import { AIAnalysis, PainSummary } from "@/types";
 // import Anthropic from "@anthropic-ai/sdk";
 
 // const client = new Anthropic({
-//   apiKey: process.env.ANTHROPIC_API_KEY,
+//   apiKey: process.env.ANTHROPIC_API_KEY!,
 // });
 
-// type Region = {
-//   label: string;
-//   painType: string;
-//   intensity: number;
-//   count?: number;
-// };
+// // ── Main function ───────────────────────────────────────────────────────────
 
-// type PainSummary = {
-//   regions: Region[];
-//   summary: {
-//     dominantPainType: string;
-//     maxIntensity: number;
-//   };
-// };
-
-// export type AIAnalysisResult = {
-//   conditionMatch: string;
-//   confidence: number;
-//   reasoning: string;
-//   exercisePlan: {
-//     name: string;
-//     targetRegion: string;
-//     description: string;
-//     sets: number;
-//     reps: number;
-//     frequency: string;
-//   }[];
-//   redFlags: string[];         // things physio should be aware of
-//   referralRecommended: boolean;
-// };
-
-// export async function analyzePain(payload: PainSummary): Promise<AIAnalysisResult> {
+// export async function analyzePain(payload: PainSummary): Promise<AIAnalysis> {
 //   const prompt = buildPrompt(payload);
 
 //   const response = await client.messages.create({
 //     model: "claude-sonnet-4-20250514",
 //     max_tokens: 1000,
-//     messages: [{ role: "user", content: prompt }],
-//     system: `You are a physiotherapy clinical decision support assistant. 
+//     temperature: 0.3, // lower = more deterministic / clinical
+//     system: `You are a physiotherapy clinical decision support assistant.
 // You receive structured pain assessment data from a patient's AR session and return a JSON analysis.
 // You never diagnose — you suggest likely conditions and evidence-based exercises for a qualified physiotherapist to review.
 // Always respond with valid JSON only. No preamble, no markdown, no explanation outside the JSON.`,
+//     messages: [{ role: "user", content: prompt }],
 //   });
 
 //   const text = response.content
-//     .filter((b) => b.type === "text")
-//     .map((b) => (b as { type: "text"; text: string }).text)
+//     .filter((block) => block.type === "text")
+//     .map((block) => (block as { type: "text"; text: string }).text)
 //     .join("");
 
 //   return parseAIResponse(text);
 // }
+
+// // ── Prompt builder (unchanged) ───────────────────────────────────────────────
 
 // function buildPrompt(payload: PainSummary): string {
 //   const regionLines = payload.regions
@@ -87,7 +61,7 @@
 //       "frequency": "e.g. Twice daily"
 //     }
 //   ],
-//   "redFlags": ["array of strings — any red flag symptoms to watch for based on presentation"],
+//   "redFlags": ["array of strings — any red flag symptoms to watch for"],
 //   "referralRecommended": boolean
 // }
 
@@ -95,13 +69,14 @@
 // `.trim();
 // }
 
-// function parseAIResponse(text: string): AIAnalysisResult {
+// // ── Parser (unchanged) ───────────────────────────────────────────────────────
+
+// function parseAIResponse(text: string): AIAnalysis {
 //   try {
-//     // Strip markdown code fences if Claude wraps in them
 //     const clean = text.replace(/```json|```/g, "").trim();
 //     return JSON.parse(clean);
 //   } catch {
-//     throw new Error(`Failed to parse AI response: ${text}`);
+//     throw new Error(`Failed to parse Claude response: ${text}`);
 //   }
 // }
 
@@ -114,7 +89,7 @@ const client = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function analyzePain(payload: PainSummary): Promise<AIAnalysis> {
   const model = client.getGenerativeModel({
-    model: "gemini-2.5-flash",
+    model: "gemini-2.5-flash-lite",
     systemInstruction: `You are a physiotherapy clinical decision support assistant.
 You receive structured pain assessment data from a patient's AR session and return a JSON analysis.
 You never diagnose — you suggest likely conditions and evidence-based exercises for a qualified physiotherapist to review.
