@@ -111,9 +111,59 @@ Always respond with valid JSON only. No preamble, no markdown, no explanation ou
 
 // ── Prompt builder (identical logic to Claude version) ──────────────────────
 
+// function buildPrompt(payload: PainSummary): string {
+//   const regionLines = payload.regions
+//     .map((r) => `- ${r.label}: ${r.painType} pain, intensity ${r.intensity}/10`)
+//     .join("\n");
+
+//   return `
+// A patient has completed an AR pain mapping session. Here is their structured pain data:
+
+// PAIN REGIONS:
+// ${regionLines}
+
+// SUMMARY:
+// - Dominant pain type: ${payload.summary.dominantPainType}
+// - Maximum intensity: ${payload.summary.maxIntensity}/10
+
+// Please analyse this and return a JSON object with EXACTLY this structure:
+// {
+//   "conditionMatch": "string — most likely condition e.g. Lumbar strain L4/L5",
+//   "confidence": number between 0 and 100,
+//   "reasoning": "string — 1-2 sentence clinical reasoning for the condition match",
+//   "exercisePlan": [
+//     {
+//       "name": "exercise name",
+//       "targetRegion": "body region this targets",
+//       "description": "clear patient-friendly instruction",
+//       "sets": number,
+//       "reps": number,
+//       "frequency": "e.g. Twice daily"
+//     }
+//   ],
+//   "redFlags": ["array of strings — any red flag symptoms to watch for"],
+//   "referralRecommended": boolean
+// }
+
+// Return 3-5 exercises appropriate for the condition. Return JSON only.
+// `.trim();
+// }
+
+// lib/ai/analyzePain.ts — update buildPrompt only
+
 function buildPrompt(payload: PainSummary): string {
   const regionLines = payload.regions
     .map((r) => `- ${r.label}: ${r.painType} pain, intensity ${r.intensity}/10`)
+    .join("\n");
+
+  // Build the region detail lines — skip unspecified entries
+  const detailLines = payload.regionDetails
+    .map((d) => {
+      const triggers = d.triggers.length > 0 ? d.triggers.join(", ") : "none reported";
+      const pattern = d.pattern !== "unspecified" ? d.pattern.replace(/_/g, " ") : "unspecified";
+      const duration = d.duration !== "unspecified" ? d.duration.replace(/_/g, " ") : "unspecified";
+      return `- ${formatBodyPart(d.bodyPart)}: pattern = ${pattern}, duration = ${duration}, triggers = ${triggers}`;
+    })
     .join("\n");
 
   return `
@@ -122,9 +172,13 @@ A patient has completed an AR pain mapping session. Here is their structured pai
 PAIN REGIONS:
 ${regionLines}
 
+REGION DETAILS (pattern, duration, triggers per body part):
+${detailLines || "No additional details provided."}
+
 SUMMARY:
 - Dominant pain type: ${payload.summary.dominantPainType}
 - Maximum intensity: ${payload.summary.maxIntensity}/10
+- Average intensity: ${payload.summary.averageIntensity}/10
 
 Please analyse this and return a JSON object with EXACTLY this structure:
 {
@@ -147,6 +201,11 @@ Please analyse this and return a JSON object with EXACTLY this structure:
 
 Return 3-5 exercises appropriate for the condition. Return JSON only.
 `.trim();
+}
+
+// helper used inside buildPrompt
+function formatBodyPart(bodyPart: string): string {
+  return bodyPart.split("_").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
 }
 
 // ── Parser ──────────────────────────────────────────────────────────────────

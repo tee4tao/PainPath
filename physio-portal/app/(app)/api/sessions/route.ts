@@ -19,7 +19,11 @@ export async function POST(req: Request) {
 
     const processedRegions = processPainZones(body.painZones);
 
-    const painSummary = buildPainSummary(processedRegions);
+const painSummary = buildPainSummary(
+  processedRegions,
+  body.sessionSummary,
+  body.regionDetails ?? [] // ← add this
+);
 
     let aiAnalysis = null;
 

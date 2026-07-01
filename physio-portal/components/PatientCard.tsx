@@ -1,5 +1,6 @@
 import { Session } from '@/types';
 import React from 'react'
+import PainNarrativeSummary from './PainNarrativeSummary';
 
 const PatientCard = ({ data }:{ data: Session }) => {
     
@@ -19,7 +20,7 @@ const PatientCard = ({ data }:{ data: Session }) => {
           </div>
           <hr className="border-none border-t border-black/10 my-3" />
           <div className="text-[10px] font-medium text-[#888780] uppercase tracking-[0.05em] mb-2">Pain zones recorded</div>
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-1.5 mb-2">
             {processed.regions.map((region) => {
                 const { label, painType,intensity, color } = region;
                 return(
@@ -45,6 +46,10 @@ const PatientCard = ({ data }:{ data: Session }) => {
                 )
 })}
           </div>
+                  <PainNarrativeSummary
+  patientId={data.patientId}
+  regionDetails={data.processed.painSummary.regionDetails ?? []}
+/>
           <hr className="border-none border-t border-black/10 my-3" />
           <div className="text-[11px] text-[#B4B2A9]">Submitted: {submittedAt._seconds ? new Date(submittedAt._seconds * 1000).toLocaleString() : 'N/A'}</div>
           {/* <div className="text-[11px] text-[#B4B2A9]">Submitted: 19 Apr 2026 · 14:32 UTC</div> */}

@@ -24,11 +24,13 @@ export type ProcessedRegion = {
   svgY: number;
 };
 export type PainSummary = {
-  regions: ProcessedRegion[];
+  regions: ProcessedZone[];
   summary: {
-    dominantPainType: "sharp" | "ache" | "stiff";
+    dominantPainType: string;
     maxIntensity: number;
+    averageIntensity: number;
   };
+  regionDetails: RegionDetail[];
 };
 export type PainZone = {
   zoneId: string;
@@ -86,4 +88,13 @@ export type Session = {
   plan: Plan;
 
   audit: Audit;
+};
+
+// types/index.ts — add this
+export type RegionDetail = {
+  bodyPart: string;
+  markerCount: number;
+  pattern: string;
+  duration: string;
+  triggers: string[];
 };

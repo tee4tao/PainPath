@@ -13,6 +13,7 @@ const PatientPageContainer = ({ result }: { result: Session }) => {
     result.plan?.final ?? result.plan?.ai ?? [],
   );
   const [data, setData] = useState<Session>(result);
+  
 
   return (
     <div className="min-h-screen text-[13px] text-[#2C2C2A]">
@@ -21,6 +22,7 @@ const PatientPageContainer = ({ result }: { result: Session }) => {
       <div className="grid grid-cols-2 gap-3">
         {/* Patient card */}
         <PatientCard data={data} />
+
 
         {/* Heatmap card */}
         <HeatCard painZones={data.rawInput.painZones} />

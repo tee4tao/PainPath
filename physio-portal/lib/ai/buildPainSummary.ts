@@ -1,19 +1,22 @@
-// lib/ai/buildPainSummary.ts
-type Region = { label: string; painType: string; intensity: number };
+import { PainZone, RegionDetail } from "@/types";
+import { ProcessedZone } from "@/lib/mapToRegion";
 
-export function buildPainSummary(regions: Region[]) {
-  const dominantPainType = regions.reduce((a, b) =>
-    b.intensity > a.intensity ? b : a
-  ).painType;
-
-  const maxIntensity = Math.max(...regions.map((r) => r.intensity));
-
+export function buildPainSummary(
+  regions: ProcessedZone[],
+  sessionSummary: { dominantPainType: string; maxIntensity: number; averageIntensity: number },
+  regionDetails: RegionDetail[]
+) {
   return {
     regions: regions.map(({ label, painType, intensity }) => ({
       label,
       painType,
       intensity,
     })),
-    summary: { dominantPainType, maxIntensity },
+    summary: {
+      dominantPainType: sessionSummary.dominantPainType,
+      maxIntensity: sessionSummary.maxIntensity,
+      averageIntensity: sessionSummary.averageIntensity,
+    },
+    regionDetails,
   };
 }
