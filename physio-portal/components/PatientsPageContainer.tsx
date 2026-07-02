@@ -8,6 +8,7 @@ import StatRow from "./StatRow";
 // ── Helpers ────────────────────────────────────────────────────────────────
 const PAIN_COLORS = { sharp: "#E24B4A", ache: "#EF9F27", stiff: "#378ADD" };
 const TABS = ["Pending review", "Approved", "All patients"];
+const PAGE_SIZE = 8; // patients per page
 
 function timeAgo(isoString: number) {
   const diff = Date.now() - new Date(isoString).getTime();
@@ -114,9 +115,20 @@ function PatientsCard({ patient }: { patient: Session }) {
 
 const PatientsPageContainer = ({ sessions }: { sessions: Session[] }) => {
 
-      const router = useRouter();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState(0);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+
+  function handleTabChange(i: number) {
+    setActiveTab(i);
+    setPage(1);
+  }
+
+  function handleSearchChange(q: string) {
+    setSearch(q);
+    setPage(1);
+  }
 
   // 1. Sort all sessions newest first — once, before any filtering
 const sorted = useMemo(() => {
@@ -141,12 +153,25 @@ const sorted = useMemo(() => {
     return sorted;
   }, [sorted, activeTab]);
 
-  // 3. Filter by search (patientId — case insensitive)
-  const displayed = useMemo(() => {
+    // 3. Filter by search
+  const searchFiltered = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return tabFiltered;
     return tabFiltered.filter((s) => s.patientId.toLowerCase().includes(q));
   }, [tabFiltered, search]);
+
+  // 4. Paginate
+  const totalPages = Math.max(1, Math.ceil(searchFiltered.length / PAGE_SIZE));
+  const displayed = searchFiltered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  const pendingCount = sorted.filter((s) => s.status === "pending_review").length;
+
+  // // 3. Filter by search (patientId — case insensitive)
+  // const displayed = useMemo(() => {
+  //   const q = search.trim().toLowerCase();
+  //   if (!q) return tabFiltered;
+  //   return tabFiltered.filter((s) => s.patientId.toLowerCase().includes(q));
+  // }, [tabFiltered, search]);
 
   const pending  = sessions.filter((p) => p.status === "pending_review");
   const approved = sessions.filter((p) => p.status === "approved");
@@ -155,8 +180,9 @@ const sorted = useMemo(() => {
   const lists = [pending, approved, all];
   // const displayed = lists[activeTab];
 
-  const pendingCount = pending.length;
+  // const pendingCount = pending.length;
   const approvedCount = approved.length;
+  
   return (
         <div className="min-h-screen py-4" style={{ background: "#F1EFE8" }}>
 
@@ -173,13 +199,14 @@ const sorted = useMemo(() => {
         <input
           type="text"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          // onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => handleSearchChange(e.target.value)}
           placeholder="Search by patient ID…"
           className="w-full pl-8 pr-4 py-[10px] bg-white border border-black/[0.12] rounded-xl text-[13px] text-[#2C2C2A] placeholder:text-[#B4B2A9] outline-none focus:border-[#0F6E56] focus:ring-2 focus:ring-[#0F6E56]/10 transition-all"
         />
         {search && (
           <button
-            onClick={() => setSearch("")}
+            onClick={() => handleSearchChange("")}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-[#B4B2A9] hover:text-[#888780] transition-colors"
           >
             <svg viewBox="0 0 16 16" fill="none" className="w-3.5 h-3.5">
@@ -194,7 +221,7 @@ const sorted = useMemo(() => {
         {TABS.map((tab, i) => (
           <button
             key={tab}
-            onClick={() => setActiveTab(i)}
+            onClick={() => handleTabChange(i)}
             className={`px-4 py-[7px] rounded-lg text-[12px] font-medium transition-all flex items-center gap-2 ${
               activeTab === i
                 ? "bg-[#0F6E56] text-white shadow-sm"
@@ -215,6 +242,20 @@ const sorted = useMemo(() => {
         ))}
       </div>
 
+      {/* Results info */}
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-[12px] text-[#888780]">
+          {search
+            ? `${searchFiltered.length} result${searchFiltered.length !== 1 ? "s" : ""} for "${search}"`
+            : `${searchFiltered.length} patient${searchFiltered.length !== 1 ? "s" : ""}`}
+        </p>
+        {totalPages > 1 && (
+          <p className="text-[12px] text-[#888780]">
+            Page {page} of {totalPages}
+          </p>
+        )}
+      </div>
+
       {/* Patient list */}
       {displayed.length === 0 ? (
         <div className="bg-white border border-black/[0.1] rounded-xl p-10 text-center">
@@ -231,6 +272,72 @@ const sorted = useMemo(() => {
           ))}
         </div>
       )}
+
+      {/* Pagination controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-1 mt-6">
+
+          {/* Previous */}
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="w-8 h-8 flex items-center justify-center rounded-lg border border-black/[0.1] bg-white text-[#888780] hover:bg-[#F1EFE8] hover:text-[#2C2C2A] disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          >
+            <svg viewBox="0 0 16 16" fill="none" className="w-3.5 h-3.5">
+              <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+
+          {/* Page numbers */}
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => {
+            // Always show first, last, current, and neighbours — collapse rest to "…"
+            const show =
+              p === 1 ||
+              p === totalPages ||
+              p === page ||
+              p === page - 1 ||
+              p === page + 1;
+
+            const showEllipsisBefore = p === page - 1 && p > 2;
+            const showEllipsisAfter  = p === page + 1 && p < totalPages - 1;
+
+            if (!show) return null;
+
+            return (
+              <div key={p} className="flex items-center gap-1">
+                {showEllipsisBefore && (
+                  <span className="w-8 h-8 flex items-center justify-center text-[12px] text-[#B4B2A9]">…</span>
+                )}
+                <button
+                  onClick={() => setPage(p)}
+                  className={`w-8 h-8 rounded-lg text-[12px] font-medium transition-colors cursor-pointer ${
+                    p === page
+                      ? "bg-[#0F6E56] text-white"
+                      : "border border-black/[0.1] bg-white text-[#888780] hover:bg-[#F1EFE8] hover:text-[#2C2C2A]"
+                  }`}
+                >
+                  {p}
+                </button>
+                {showEllipsisAfter && (
+                  <span className="w-8 h-8 flex items-center justify-center text-[12px] text-[#B4B2A9]">…</span>
+                )}
+              </div>
+            );
+          })}
+
+          {/* Next */}
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+            className="w-8 h-8 flex items-center justify-center rounded-lg border border-black/[0.1] bg-white text-[#888780] hover:bg-[#F1EFE8] hover:text-[#2C2C2A] disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          >
+            <svg viewBox="0 0 16 16" fill="none" className="w-3.5 h-3.5">
+              <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        </div>
+      )}
+
 
       <style>{`
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
