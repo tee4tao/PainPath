@@ -97,7 +97,7 @@ Always respond with valid JSON only. No preamble, no markdown, no explanation ou
 
     generationConfig: {
       responseMimeType: "application/json",  // 👈 Gemini-specific — forces pure JSON output
-      maxOutputTokens: 4000,                 // Increase token limit for more detailed responses (from 1000 to 2000) for 3.5-flash
+      maxOutputTokens: 10000,                 // Increase token limit for more detailed responses (from 1000 to 2000) for 3.5-flash
       temperature: 0.3,                      // lower = more deterministic / clinical
     },
   });
