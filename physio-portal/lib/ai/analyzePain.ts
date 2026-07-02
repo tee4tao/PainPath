@@ -97,7 +97,7 @@ Always respond with valid JSON only. No preamble, no markdown, no explanation ou
 
     generationConfig: {
       responseMimeType: "application/json",  // 👈 Gemini-specific — forces pure JSON output
-      maxOutputTokens: 1000,
+      maxOutputTokens: 4000,                 // Increase token limit for more detailed responses (from 1000 to 2000) for 3.5-flash
       temperature: 0.3,                      // lower = more deterministic / clinical
     },
   });
@@ -210,11 +210,28 @@ function formatBodyPart(bodyPart: string): string {
 
 // ── Parser ──────────────────────────────────────────────────────────────────
 
+// function parseAIResponse(text: string): AIAnalysis {
+//   try {
+//     const clean = text.replace(/```json|```/g, "").trim();
+//     return JSON.parse(clean);
+//   } catch {
+//     throw new Error(`Failed to parse Gemini response: ${text}`);
+//   }
+// }
+
 function parseAIResponse(text: string): AIAnalysis {
+  const clean = text.replace(/```json|```/g, "").trim();
+
+  // Detect truncation early — valid JSON always ends with }
+  if (!clean.endsWith("}")) {
+    console.error(`Response appears truncated (${text.length} chars). Last 100 chars:`, text.slice(-100));
+    throw new Error(`Gemini response was truncated at ${text.length} characters`);
+  }
+
   try {
-    const clean = text.replace(/```json|```/g, "").trim();
     return JSON.parse(clean);
-  } catch {
+  } catch (e) {
+    console.error("Failed to parse. Response preview:", text.slice(0, 300));
     throw new Error(`Failed to parse Gemini response: ${text}`);
   }
 }
