@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Session } from "@/types";
@@ -116,18 +116,78 @@ const PatientsPageContainer = ({ sessions }: { sessions: Session[] }) => {
 
       const router = useRouter();
   const [activeTab, setActiveTab] = useState(0);
+  const [search, setSearch] = useState("");
+
+  // 1. Sort all sessions newest first — once, before any filtering
+const sorted = useMemo(() => {
+  return [...sessions].sort((a, b) => {
+    const getTime = (submittedAt: any) => {
+      // Firestore Timestamp object: { _seconds, _nanoseconds }
+      if (submittedAt?._seconds) return submittedAt._seconds;
+      // Fallback: ISO string
+      if (typeof submittedAt === "string") return new Date(submittedAt).getTime() / 1000;
+      return 0;
+    };
+
+    return getTime(b.submittedAt) - getTime(a.submittedAt);
+  });
+}, [sessions]);
+  
+
+  // 2. Filter by tab
+  const tabFiltered = useMemo(() => {
+    if (activeTab === 0) return sorted.filter((s) => s.status === "pending_review");
+    if (activeTab === 1) return sorted.filter((s) => s.status === "approved");
+    return sorted;
+  }, [sorted, activeTab]);
+
+  // 3. Filter by search (patientId — case insensitive)
+  const displayed = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return tabFiltered;
+    return tabFiltered.filter((s) => s.patientId.toLowerCase().includes(q));
+  }, [tabFiltered, search]);
 
   const pending  = sessions.filter((p) => p.status === "pending_review");
   const approved = sessions.filter((p) => p.status === "approved");
   const all      = sessions;
 
   const lists = [pending, approved, all];
-  const displayed = lists[activeTab];
+  // const displayed = lists[activeTab];
 
   const pendingCount = pending.length;
   const approvedCount = approved.length;
   return (
         <div className="min-h-screen py-4" style={{ background: "#F1EFE8" }}>
+
+           {/* Search bar */}
+      <div className="relative mb-4">
+        <svg
+          viewBox="0 0 16 16"
+          fill="none"
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#B4B2A9]"
+        >
+          <circle cx="6.5" cy="6.5" r="4" stroke="currentColor" strokeWidth="1.4" />
+          <path d="M10 10l3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+        </svg>
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by patient ID…"
+          className="w-full pl-8 pr-4 py-[10px] bg-white border border-black/[0.12] rounded-xl text-[13px] text-[#2C2C2A] placeholder:text-[#B4B2A9] outline-none focus:border-[#0F6E56] focus:ring-2 focus:ring-[#0F6E56]/10 transition-all"
+        />
+        {search && (
+          <button
+            onClick={() => setSearch("")}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#B4B2A9] hover:text-[#888780] transition-colors"
+          >
+            <svg viewBox="0 0 16 16" fill="none" className="w-3.5 h-3.5">
+              <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+            </svg>
+          </button>
+        )}
+      </div>
 
       {/* Tabs */}
       <div className="flex gap-1 bg-white border border-black/[0.1] rounded-xl p-1 mb-4 w-fit">
@@ -158,7 +218,7 @@ const PatientsPageContainer = ({ sessions }: { sessions: Session[] }) => {
       {/* Patient list */}
       {displayed.length === 0 ? (
         <div className="bg-white border border-black/[0.1] rounded-xl p-10 text-center">
-          <div className="text-[13px] text-[#888780]">No patients in this category</div>
+          <div className="text-[13px] text-[#888780]">{search ? `No patients match "${search}"` : "No patients in this category"}</div>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
