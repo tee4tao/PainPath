@@ -6,12 +6,13 @@ using System.IO;
 public class CompletionUI : MonoBehaviour
 {
     [Header("References")]
-    public PainTypeUI         painTypeUI;
-    public PainDataStore      painDataStore;
-    public FirebaseUploader   firebaseUploader;   // legacy, kept for compatibility
-    public SessionUploader    sessionUploader;    // new — POST to Next.js API
-    public HandRaycastPainter handRaycastPainter; // disabled after submit so user can't draw
-    public Transform          cameraTransform;
+    public PainTypeUI           painTypeUI;
+    public PainDataStore        painDataStore;
+    public FirebaseUploader     firebaseUploader;     // legacy, kept for compatibility
+    public SessionUploader      sessionUploader;      // POST to Next.js API
+    public HandRaycastPainter   handRaycastPainter;   // disabled after submit so user can't draw
+    public PainDetailsRecapUI   recapUI;              // pre-review enrichment form (optional)
+    public Transform            cameraTransform;
 
     [Header("Panel Settings")]
     public float distanceFromCamera = 0.35f;
@@ -22,9 +23,26 @@ public class CompletionUI : MonoBehaviour
 
     void Start()
     {
-        // Hook into the "I'm done" button from the idle prompt
+        // When the patient hits Submit (or "I'm done" from the idle prompt),
+        // route through the recap form first if it's wired, then show the
+        // final Review panel. If no recap UI is assigned, go straight to Review.
         if (painTypeUI != null)
-            painTypeUI.onDoneRequested = ShowReviewPanel;
+            painTypeUI.onDoneRequested = OnSubmitTapped;
+
+        if (recapUI != null)
+            recapUI.onRecapComplete = ShowReviewPanel;
+    }
+
+    void OnSubmitTapped()
+    {
+        // Hide painting UI + lock the painter from this point on
+        if (painTypeUI != null)         painTypeUI.SetPanelVisible(false);
+        if (handRaycastPainter != null) handRaycastPainter.enabled = false;
+
+        if (recapUI != null)
+            recapUI.Show();    // fires onRecapComplete → ShowReviewPanel
+        else
+            ShowReviewPanel(); // no recap wired → skip straight to review
     }
 
     void Update()
@@ -53,10 +71,9 @@ public class CompletionUI : MonoBehaviour
 
     public void ShowReviewPanel()
     {
-        // Hide main painting UI while reviewing
-        if (painTypeUI != null) painTypeUI.SetPanelVisible(false);
-
-        // Stop drawing while the review panel is up — re-enabled if user taps Edit
+        // Defensive: painting UI hidden + painter disabled. Usually already done by
+        // OnSubmitTapped, but guard against direct calls (e.g. recap → review path).
+        if (painTypeUI != null)         painTypeUI.SetPanelVisible(false);
         if (handRaycastPainter != null) handRaycastPainter.enabled = false;
 
         if (reviewPanel != null) { reviewPanel.SetActive(true); return; }
@@ -87,9 +104,12 @@ public class CompletionUI : MonoBehaviour
     void OnEdit()
     {
         if (reviewPanel != null) reviewPanel.SetActive(false);
+        if (recapUI     != null) recapUI.Hide();
         if (painTypeUI  != null) painTypeUI.SetPanelVisible(true);
 
-        // Allow drawing again
+        // Allow drawing again — the next Submit will re-show the recap
+        // (preserving any selections the patient already made — see
+        // PainDataStore.regionDetails which the recap reads on Show())
         if (handRaycastPainter != null) handRaycastPainter.enabled = true;
     }
 
