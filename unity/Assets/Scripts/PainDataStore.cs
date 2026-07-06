@@ -34,14 +34,25 @@ public class SessionSummary
 }
 
 [System.Serializable]
+public class RegionDetails
+{
+    public string       bodyPart;       // e.g. "lower_back"
+    public int          markerCount;    // how many markers fall in this region
+    public string       pattern  = "unspecified"; // constant / comes_and_goes / worse_with_movement / worse_at_rest / unspecified
+    public string       duration = "unspecified"; // today / few_days / weeks / months / years / unspecified
+    public List<string> triggers = new List<string>(); // any of: morning, night, exercise, sitting, standing, stress
+}
+
+[System.Serializable]
 public class PainSession
 {
     public string         sessionId;
     public string         patientId;
     public string         submittedAt;
-    public string         deviceType     = "MetaQuest3";
-    public SessionSummary sessionSummary = new SessionSummary();
-    public List<PainZone> painZones      = new List<PainZone>();
+    public string              deviceType     = "MetaQuest3";
+    public SessionSummary      sessionSummary = new SessionSummary();
+    public List<RegionDetails> regionDetails  = new List<RegionDetails>();
+    public List<PainZone>      painZones      = new List<PainZone>();
 }
 
 public class PainDataStore : MonoBehaviour
@@ -97,10 +108,62 @@ public class PainDataStore : MonoBehaviour
         currentSession.painZones.Add(zone);
     }
 
+    /// Returns the unique body parts present in the current session, ordered by
+    /// marker count desc. The recap UI uses this to build one card per region.
+    public List<string> GetAffectedBodyParts()
+    {
+        return currentSession.painZones
+            .GroupBy(z => string.IsNullOrEmpty(z.bodyPart) ? "unknown" : z.bodyPart)
+            .OrderByDescending(g => g.Count())
+            .Select(g => g.Key)
+            .ToList();
+    }
+
+    public int MarkerCountForRegion(string bodyPart)
+    {
+        return currentSession.painZones.Count(z =>
+            string.Equals(z.bodyPart, bodyPart, System.StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// Called by PainDetailsRecapUI on Continue. Replaces any prior details
+    /// for this region so the patient can re-edit if they go back.
+    public void SetRegionDetails(string bodyPart, string pattern, string duration, List<string> triggers)
+    {
+        if (string.IsNullOrEmpty(bodyPart)) return;
+
+        RegionDetails existing = currentSession.regionDetails
+            .Find(r => r.bodyPart == bodyPart);
+
+        if (existing == null)
+        {
+            existing = new RegionDetails { bodyPart = bodyPart };
+            currentSession.regionDetails.Add(existing);
+        }
+
+        existing.markerCount = MarkerCountForRegion(bodyPart);
+        existing.pattern     = string.IsNullOrEmpty(pattern)  ? "unspecified" : pattern;
+        existing.duration    = string.IsNullOrEmpty(duration) ? "unspecified" : duration;
+        existing.triggers    = triggers ?? new List<string>();
+    }
+
+    public RegionDetails GetRegionDetails(string bodyPart)
+    {
+        return currentSession.regionDetails.Find(r => r.bodyPart == bodyPart);
+    }
+
     public string GetSessionJSON()
     {
         currentSession.submittedAt    = System.DateTime.UtcNow.ToString("o");
         currentSession.sessionSummary = BuildSummary(currentSession.painZones, sessionStartUtc);
+
+        // Drop region details for regions that no longer have markers (patient may have undone them)
+        currentSession.regionDetails.RemoveAll(r =>
+            !currentSession.painZones.Any(z => z.bodyPart == r.bodyPart));
+
+        // Refresh marker counts in case the patient added/removed markers after first filling the recap
+        foreach (var r in currentSession.regionDetails)
+            r.markerCount = MarkerCountForRegion(r.bodyPart);
+
         return JsonUtility.ToJson(currentSession, true);
     }
 

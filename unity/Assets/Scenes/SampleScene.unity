@@ -685,6 +685,7 @@ MonoBehaviour:
       maxIntensity: 0
       averageIntensity: 0
       durationSeconds: 0
+    regionDetails: []
     painZones: []
   currentPainType: ache
   currentIntensity: 5
@@ -1617,6 +1618,7 @@ GameObject:
   - component: {fileID: 1230243602}
   - component: {fileID: 1230243601}
   - component: {fileID: 1230243603}
+  - component: {fileID: 1230243604}
   m_Layer: 0
   m_Name: Managers
   m_TagString: Untagged
@@ -1660,6 +1662,7 @@ MonoBehaviour:
   firebaseUploader: {fileID: 0}
   sessionUploader: {fileID: 1230243601}
   handRaycastPainter: {fileID: 296991064}
+  recapUI: {fileID: 1230243604}
   cameraTransform: {fileID: 2083966175}
   distanceFromCamera: 0.35
   heightOffset: 0
@@ -1740,6 +1743,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 22ed991c3cf89fa4ea6193fed41796cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1230243604
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1230243596}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 80d03dac15f78b443a686985c51ee09f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  painDataStore: {fileID: 296991063}
+  cameraTransform: {fileID: 2083966175}
+  distanceFromCamera: 0.42
+  heightOffset: -0.05
 --- !u!1 &1241364534 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 996bc95e1b6dfc847aead2de66dc4a91, type: 3}
